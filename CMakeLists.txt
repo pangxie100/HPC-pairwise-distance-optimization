@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 2.8)
+link_directories(${CMAKE_SOURCE_DIR}/mkldnn/lib/)
+include_directories(${CMAKE_SOURCE_DIR}/mkldnn/include/)
+if (APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native -Wall")
+    set(EXTRA_LIBS iomp5 mklml m)
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native -Wall")
+    set(EXTRA_LIBS iomp5 mklml_gnu m)
+endif()
+
+add_executable(my_pair_dist pairwise_distance_mkl.c util.c)
+target_link_libraries(my_pair_dist ${EXTRA_LIBS})
