@@ -31,14 +31,26 @@ cd HPC-pairwise-distance-optimization
 ```
 $ ./run_MacOS.sh
 ```
+If you get "Permission denied" error, please run this command first:
+```
+chmod +x run_MacOS.sh
+```
 
 *Linux OS*
 ```
 $ ./run_Linux.sh
 ```
+If you get "Permission denied" error, please run this command first:
+```
+chmod +x run_Linux.sh
+```
 
 After running the above command, it will automatically run a default case. Then, each time you set a new size matrix or want to run it again, you can just run this:
 ```
-$ recompile_run.sh
+$ ./recompile_run.sh
+```
+If you get "Permission denied" error, please run this command first:
+```
+chmod +x recompile_run.sh
 ```
 
