@@ -1,0 +1,1 @@
+void pdist_mkl_float(float *A, float *B, float *C, int M, int N, int K);
