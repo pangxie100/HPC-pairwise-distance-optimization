@@ -52,12 +52,17 @@ both
 ```
 $ cd mkldnn
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`
+cd ..
+cd build
 ```
 and 
 ```
 $ cd mkldnn
 $ cd lib
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`
+cd ..
+cd ..
+cd build
 ```
 are ok for running the program here.
 

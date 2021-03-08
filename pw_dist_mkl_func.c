@@ -7,7 +7,7 @@
 // this computation way is for column-major
 //#define C(i,j) C[(i)+(j)*LDC]
 
-#define TIME_COUNT 1        // if you want to count time for performance profiling, uncomment this
+//#define TIME_COUNT 1        // if you want to count time for performance profiling, uncomment this
 
 // Version 4: 1.simulate MATLAB with x' * y, thus, A^T. For A^T, each row is one observation.(one point in a k-dimension space), For B, cloumn.
 //            2.use mkl lib

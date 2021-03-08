@@ -10,5 +10,6 @@ cd mkldnn
 cd lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`
 cd ..
+cd ..
 cd build
 ./my_pair_dist 10000 20000 3
