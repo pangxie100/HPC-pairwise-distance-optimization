@@ -7,6 +7,7 @@ cd build
 rm -rf * && cmake .. && make
 cd ..
 cd mkldnn
+cd lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`
 cd ..
 cd build

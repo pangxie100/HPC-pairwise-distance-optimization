@@ -13,3 +13,7 @@ endif()
 
 add_executable(my_pair_dist pairwise_distance_mkl.c util.c)
 target_link_libraries(my_pair_dist ${EXTRA_LIBS})
+add_executable(my_pw_dist_perf pw_dist_mkl_func.c util.c test.c)
+target_link_libraries(my_pw_dist_perf ${EXTRA_LIBS})
+add_executable(my_pdist_float_perf pdist_mkl_float_func.c util.c test_float.c)
+target_link_libraries(my_pdist_float_perf ${EXTRA_LIBS})

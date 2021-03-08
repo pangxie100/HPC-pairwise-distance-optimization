@@ -6,22 +6,42 @@
 // this computation way is for column-major
 #define A(i,j) A[(i)+(j)*LDA]
 #define A_T(i,j) A_T[(i)+(j)*LDA_T]
-#define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
 #define M 3
 #define N 2
 #define K 4
+#define TIME_COUNT 1
 
 // Version 3: 1.simulate MATLAB with x' * y, thus, A^T. For A^T, each row is one observation.(one point in a k-dimension space), For B, cloumn.
 //            2.use mkl lib
 int main(int argc, char *argv[]){
+#ifdef TIME_COUNT
+    double t0, t1;
+    double t_allocate = 0.;
+    t0 = get_sec();
+#endif 
     double *A, *B, *C, *A_T;
-    int LDA = K, LDB = K, LDC = M, LDA_T = M;
+    //double *D;
+    int LDA = K, LDC = M, LDA_T = M;
     A = (double *)malloc(sizeof(double) * K * M);
     A_T = (double *)malloc(sizeof(double) * M * K);
     B = (double *)malloc(sizeof(double) * K * N);
-    C = (double *)malloc(sizeof(double) * M * N);
-    
+    C = (double *)malloc(sizeof(double) * M * N); // maybe due to the compiler, this malloc is not all 0
+    //D = (double *)malloc(sizeof(double) * M * N);
+    printf("matrix x malloc space:\n");
+    print_matrix(A, K, M);
+    printf("matrix y malloc space:\n");
+    print_matrix(B, K, N); // the malloc before matrix C are all correct: all 0
+    printf("matrix C malloc space:\n");
+    print_matrix(C, M, N); 
+    //print_matrix(D, M, N); //the malloc after matrix C is all correct: all 0
+    //free(D);
+#ifdef TIME_COUNT
+    t1 = get_sec();
+    t_allocate += (t1 - t0);
+    printf("t-allocate : %f s\n", t_allocate);
+    t0 = t1;
+#endif
     // Initialization
     printf("matrix x is initialized as:\n");
     sequential_initialize_matrix(A, K, M);
@@ -36,7 +56,7 @@ int main(int argc, char *argv[]){
     //random_initialize_matrix(A, K, M);
     //random_initialize_matrix(B, K, N);
 
-    
+    ///*
     // pairwise distance:
     // ||x-y||^2 = |x|^2 + |y|^2 - 2 * x * y
 
@@ -51,6 +71,13 @@ int main(int argc, char *argv[]){
     printf("the transpose matrix x' is:\n");
     print_matrix(A_T, M, K);
     print_array(A_T, M * K);
+    //*/
+
+    printf("after matrix A transpose, matrix C malloc space:\n");
+    print_matrix(C, M, N); // environment: turing4 in UCR
+    // after the tranpose of matrix A, the non-zero number in matrix C becomes zero again, interesting
+    // if you want to not use the transpose part which is useless here and also want to avoid this bug, you need to set all numbers to zero after malloc, for 3 matrix.
+    // because when you change M N K size to 4 3 5, the non-zero goes to matrix B. 
 
     // |x'|^2 (x' is a M * K matrix) -> |x'|^2 (M * 1)
     double *ptr_A = A;
