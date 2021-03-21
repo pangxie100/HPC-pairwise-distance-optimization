@@ -91,6 +91,8 @@ The default run times of pairwise distance computing is 100.
 The default size of test matrix in these ".sh" file is 10000 20000 3
 
 ## Performance profiling
+First, make sure you have run "run_Linux.sh" or "run_MacOS.sh". Make sure there is a directory called "build" in the path: "HPC-pairwise-distance-optimization/pairwise_distance/". Otherwise, running the following ".sh" will remove all files in the current directory: "HPC-pairwise-distance-optimization/pairwise_distance/".
+
 Performance profiling can see each part's elapsed time in pairwise distance computing.
 For double type matrix computing, uncomment "//#define TIME_COUNT 1" in "pw_dist_mkl_func.c" and run:
 ```
