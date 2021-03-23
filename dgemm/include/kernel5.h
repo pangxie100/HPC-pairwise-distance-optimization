@@ -67,7 +67,7 @@ void pzydgemm_cpu_v5(int M, int N, int K, double alpha, double *A, int LDA, doub
     }
     if(M4 == M && N4 == N) return;
     // boundary conditions
-    if (M4 != M) mydgemm_cpu_opt_k5(M-M4,N,K,alpha,A+M4,LDA,B,LDB,1.0,&C(M4,0),LDC); // A+M4 move to M4 row, because it's column major
+    if (M4 != M) pzydgemm_cpu_opt_k5(M - M4, N, K, alpha, A + M4, LDA, B, LDB, 1.0, &C(M4, 0), LDC); // A+M4 move to M4 row, because it's column major
     // 疑问：C语言是怎么知道这是column major的？为什么A+M4就能正确移动到第M4行第一列的位置？
-    if (N4 != N) mydgemm_cpu_opt_k5(M4,N-N4,K,alpha,A,LDA,&B(0,N4),LDB,1.0,&C(0,N4),LDC);
+    if (N4 != N) pzydgemm_cpu_opt_k5(M4, N - N4, K, alpha, A, LDA, &B(0, N4), LDB, 1.0, &C(0, N4), LDC);
 }

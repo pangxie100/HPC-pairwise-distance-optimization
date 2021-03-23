@@ -88,42 +88,42 @@ void test_mkl(int m, int n, int k, double alpha, double *A, double *B, double be
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k1(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v1(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v1(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v1(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k2(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v2(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v2(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v2(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k3(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v3(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v3(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v3(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k4(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v4(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v4(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v4(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k5(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v5(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v5(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v5(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k6(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v6(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v6(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v6(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-void test_pzydgemm_k7(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
+void test_pzydgemm_v7(int m, int n, int k, double alpha, double *A, double *B, double beta, double *C){
     //mydgemm_cpu_v7(m,n,k,alpha,A,m,B,k,beta,C,m);
     pzydgemm_cpu_v7(m, n, k, alpha, A, m, B, k, beta, C, m);
 }
 
-
+/*
 void test_mydgemm_v8(int m,int n,int k,double alpha,double *A,double *B,double beta,double *C){
     mydgemm_cpu_v8(m,n,k,alpha,A,m,B,k,beta,C,m);
 }
@@ -171,17 +171,19 @@ void test_mydgemm_v18(int m,int n,int k,double alpha,double *A,double *B,double 
 void test_mydgemm_v19(int m,int n,int k,double alpha,double *A,double *B,double beta,double *C){
     mydgemm_cpu_v19(m,n,k,alpha,A,m,B,k,beta,C,m);
 }
+*/
 
 void test_kernel(int kernel_num,int m,int n,int k,double alpha,double *A,double *B,double beta,double *C){
     switch (kernel_num){
-        case 0: test_mkl(m,n,k,alpha,A,B,beta,C); break;
-        case 1: test_mydgemm_v1(m,n,k,alpha,A,B,beta,C); break;
-        case 2: test_mydgemm_v2(m,n,k,alpha,A,B,beta,C); break;
-        case 3: test_mydgemm_v3(m,n,k,alpha,A,B,beta,C); break;
-        case 4: test_mydgemm_v4(m,n,k,alpha,A,B,beta,C); break;
-        case 5: test_mydgemm_v5(m,n,k,alpha,A,B,beta,C); break;
-        case 6: test_mydgemm_v6(m,n,k,alpha,A,B,beta,C); break;
-        case 7: test_mydgemm_v7(m,n,k,alpha,A,B,beta,C); break;
+        case 0: test_mkl(m, n, k, alpha, A, B, beta, C); break;
+        case 1: test_pzydgemm_v1(m, n, k, alpha, A, B, beta, C); break;
+        case 2: test_pzydgemm_v2(m, n, k, alpha, A, B, beta, C); break;
+        case 3: test_pzydgemm_v3(m, n, k, alpha, A, B, beta, C); break;
+        case 4: test_pzydgemm_v4(m, n, k, alpha, A, B, beta, C); break;
+        case 5: test_pzydgemm_v5(m, n, k, alpha, A, B, beta, C); break;
+        case 6: test_pzydgemm_v6(m, n, k, alpha, A, B, beta, C); break;
+        case 7: test_pzydgemm_v7(m, n, k, alpha, A, B, beta, C); break;
+        /*
         case 8: test_mydgemm_v8(m,n,k,alpha,A,B,beta,C); break;
         case 9: test_mydgemm_v9(m,n,k,alpha,A,B,beta,C); break;
         case 10: test_mydgemm_v10(m,n,k,alpha,A,B,beta,C); break;
@@ -194,6 +196,7 @@ void test_kernel(int kernel_num,int m,int n,int k,double alpha,double *A,double 
         case 17: test_mydgemm_v17(m,n,k,alpha,A,B,beta,C); break;
         case 18: test_mydgemm_v18(m,n,k,alpha,A,B,beta,C); break;
         case 19: test_mydgemm_v19(m,n,k,alpha,A,B,beta,C); break;
+        */
         default: break;
     }
 }

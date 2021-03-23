@@ -99,6 +99,6 @@ void pzydgemm_cpu_v4(int M, int N, int K, double alpha, double *A, int LDA, doub
     }
     if(M4 == M && N4 == N) return;
     // boundary conditions
-    if (M4 != M) mydgemm_cpu_opt_k4(M-M4,N,K,alpha,A+M4,LDA,B,LDB,1.0,&C(M4,0),LDC);
-    if (N4 != N) mydgemm_cpu_opt_k4(M4,N-N4,K,alpha,A,LDA,&B(0,N4),LDB,1.0,&C(0,N4),LDC);
+    if (M4 != M) pzydgemm_cpu_opt_k4(M - M4, N, K, alpha, A + M4, LDA, B, LDB, 1.0, &C(M4, 0), LDC);
+    if (N4 != N) pzydgemm_cpu_opt_k4(M4, N - N4, K, alpha, A, LDA, &B(0, N4), LDB, 1.0, &C(0, N4), LDC);
 }

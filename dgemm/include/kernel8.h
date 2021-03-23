@@ -7,7 +7,7 @@
 // 8*4 register blocking, still can be improved by adding one 4*2 register blocking
 
 // C := alpha * op(A) * op(B) + beta * C
-void pzyscale_C_k7(int M, int N, double beta, double *C, int LDC){
+void pzyscale_C_k8(int M, int N, double beta, double *C, int LDC){
     int i,j;
     for (i = 0; i < M; i++){
         for (j = 0; j < N; j++){
@@ -16,9 +16,9 @@ void pzyscale_C_k7(int M, int N, double beta, double *C, int LDC){
     }
 }
 
-void pzydgemm_cpu_opt_k7(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
+void pzydgemm_cpu_opt_k8(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     int i,j,k;
-    if (beta != 1.0) pzyscale_C_k7(M,N,beta,C,LDC);
+    if (beta != 1.0) pzyscale_C_k8(M,N,beta,C,LDC);
     for (i = 0; i < M; i++){
         for (j = 0; j < N; j++){
             // add register reuse on C(i,j) to reduce the times of accessing C(i,j) in memory
@@ -52,9 +52,13 @@ void pzydgemm_cpu_opt_k7(int M, int N, int K, double alpha, double *A, int LDA, 
     cy3 = _mm256_fmadd_pd(ay0,b03,cy3);\
     k++;
 
-void pzydgemm_cpu_v7(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
+#define M_BLOCKING 192
+#define N_BLOCKING 96
+#define K_BLOCKING 384
+
+void pzydgemm_cpu_v8(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     int i,j,k;
-    if (beta != 1.0) pzyscale_C_k7(M,N,beta,C,LDC);
+    if (beta != 1.0) pzyscale_C_k8(M,N,beta,C,LDC);
     // get an integer which is divisible by 2(eg: 16 divided by 2 is 8)
     int M8=M&-8, N4=N&-4, K4= K&-4; // 返回整除8/4/4的最大整数
     __m256d valpha = _mm256_set1_pd(alpha); // broadcast alpha to a 256-bit vector, input is a double value
@@ -94,6 +98,6 @@ void pzydgemm_cpu_v7(int M, int N, int K, double alpha, double *A, int LDA, doub
     }
     if(M8 == M && N4 == N) return;
     // boundary conditions
-    if (M8 != M) pzydgemm_cpu_opt_k7(M - M8, N, K, alpha, A + M8, LDA, B, LDB, 1.0, &C(M8, 0), LDC); // A+M8 move to M8 row, because it's column major
-    if (N4 != N) pzydgemm_cpu_opt_k7(M8, N - N4, K, alpha, A, LDA, &B(0, N4), LDB, 1.0, &C(0, N4), LDC);
+    if (M8 != M) pzydgemm_cpu_opt_k8(M - M8, N, K, alpha, A + M8, LDA, B, LDB, 1.0, &C(M8, 0), LDC); // A+M8 move to M8 row, because it's column major
+    if (N4 != N) pzydgemm_cpu_opt_k8(M8, N - N4, K, alpha, A, LDA, &B(0, N4), LDB, 1.0, &C(0, N4), LDC);
 }

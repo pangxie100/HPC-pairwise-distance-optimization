@@ -30,10 +30,13 @@ void pzydgemm_cpu_opt_k6(int M, int N, int K, double alpha, double *A, int LDA, 
         }
     }
 }
+
+// 为什么这里不需要 __m256声明？ 因为函数中事先统一声明过了
+// ax0: a00,a10,a20,a30; loadu 不需要对齐256
+// 注意：注释不能写在宏定义中，否则会报错
+
 #define KERNEL_K1_4x4_avx2_intrinsics\
-    // 为什么这里不需要 __m256声明？ 因为函数中事先统一声明过了
     ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k)));\
-    // ax0: a00,a10,a20,a30; loadu 不需要对齐256
     b00 = _mm256_broadcast_sd(&B(k,j));\
     b01 = _mm256_broadcast_sd(&B(k,j+1));\
     b02 = _mm256_broadcast_sd(&B(k,j+2));\
@@ -44,9 +47,8 @@ void pzydgemm_cpu_opt_k6(int M, int N, int K, double alpha, double *A, int LDA, 
     cx3 = _mm256_fmadd_pd(ax0,b03,cx3);\
     k++;
 
+// 4 * 1 算子(kernel) 
 #define KERNEL_K2_4x1_avx2_intrinsics\
-    // 4 * 1 算子(kernel) 
-    // 为什么这里不需要 __m256声明？ 因为函数中事先统一声明过了
     ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k)));\
     b00 = _mm256_broadcast_sd(&B(k,j));\
     cx0 = _mm256_fmadd_pd(ax0,b00,cx0);\
@@ -74,7 +76,7 @@ void pzydgemm_cpu_v6(int M, int N, int K, double alpha, double *A, int LDA, doub
                 KERNEL_K1_4x4_avx2_intrinsics
             }
             // deal with the edge case for K
-            for (k = 0; k < K;){ // 由于在宏定义中有k++，因此此处不需要再写
+            for (k = K4; k < K;){ // 由于在宏定义中有k++，因此此处不需要再写
                 KERNEL_K1_4x4_avx2_intrinsics
             }
             _mm256_storeu_pd(&C(i,j), _mm256_add_pd(cx0, _mm256_loadu_pd(&C(i,j))));
@@ -85,7 +87,7 @@ void pzydgemm_cpu_v6(int M, int N, int K, double alpha, double *A, int LDA, doub
     }
     if(M4 == M && N4 == N) return;
     // boundary conditions
-    if (M4 != M) mydgemm_cpu_opt_k6(M-M4,N,K,alpha,A+M4,LDA,B,LDB,1.0,&C(M4,0),LDC); // A+M4 move to M4 row, because it's column major
+    if (M4 != M) pzydgemm_cpu_opt_k6(M - M4, N, K, alpha, A + M4, LDA, B, LDB, 1.0, &C(M4, 0), LDC); // A+M4 move to M4 row, because it's column major
     // 疑问：C语言是怎么知道这是column major的？为什么A+M4就能正确移动到第M4行第一列的位置？
-    if (N4 != N) mydgemm_cpu_opt_k6(M4,N-N4,K,alpha,A,LDA,&B(0,N4),LDB,1.0,&C(0,N4),LDC);
+    if (N4 != N) pzydgemm_cpu_opt_k6(M4, N - N4, K, alpha, A, LDA, &B(0, N4), LDB, 1.0, &C(0, N4), LDC);
 }

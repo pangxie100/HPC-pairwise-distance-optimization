@@ -57,6 +57,6 @@ void pzydgemm_cpu_v3(int M, int N, int K, double alpha, double *A, int LDA, doub
     }
     if(M2 == M && N2 == N) return;
     // boundary conditions
-    if (M2 != M) mydgemm_cpu_opt_k3(M-M2,N,K,alpha,A+M2,LDA,B,LDB,1.0,&C(M2,0),LDC);
-    if (N2 != N) mydgemm_cpu_opt_k3(M2,N-N2,K,alpha,A,LDA,&B(0,N2),LDB,1.0,&C(0,N2),LDC);
+    if (M2 != M) pzydgemm_cpu_opt_k3(M - M2, N, K, alpha, A + M2, LDA, B, LDB, 1.0, &C(M2, 0), LDC);
+    if (N2 != N) pzydgemm_cpu_opt_k3(M2, N - N2, K, alpha, A, LDA, &B(0, N2), LDB, 1.0, &C(0, N2), LDC);
 }
