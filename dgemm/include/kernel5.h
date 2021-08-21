@@ -46,7 +46,7 @@ void pzydgemm_cpu_v5(int M, int N, int K, double alpha, double *A, int LDA, doub
             __m256d cx3 = _mm256_setzero_pd();
             for (k = 0; k < K; k++){
                 __m256d ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k))); // ax0: a00,a10,a20,a30; loadu 不需要对齐256
-                __m256d b00 = _mm256_broadcast_sd(&B(k,j)); // b00: b00,b00,b00,b00
+                __m256d b00 = _mm256_broadcast_sd(&B(k,j)); // b00: b00,b00,b00,b00 ; a vertical vector
                 __m256d b01 = _mm256_broadcast_sd(&B(k,j+1));
                 __m256d b02 = _mm256_broadcast_sd(&B(k,j+2));
                 __m256d b03 = _mm256_broadcast_sd(&B(k,j+3));
