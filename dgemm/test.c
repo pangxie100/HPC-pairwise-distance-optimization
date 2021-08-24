@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
     all_one_matrix(A, max_m, max_k);
     all_one_matrix(B, max_k, max_n);
     all_one_matrix(C, max_m, max_n);
-    */
+    //*/
 
     copy_matrix(C, C_ref, max_m * max_n);
 
@@ -95,18 +95,25 @@ int main(int argc, char *argv[]){
         //m=n=k=SIZE[i_count];
         //printf("\nM=N=K=%d:\n",m);
 
-        // my test style
+        // my style
         ///*
         m = 192 * SIZE[i_count];
         n = 96 * SIZE[i_count];
         k = 384 * SIZE[i_count];
         //*/
+
         /*
         // small test case
-        m = 16 * 3;
+        m = 24;
+        n = 8;
+        k = 32;
+        //*/
+
+        /*
+        m = 24 * 3;
         n = 8 * 3;
         k = 32 * 3;
-        */
+        //*/
         printf("\nM = %d, ", m);
         printf("N = %d, ", n);
         printf("K = %d\n", k);
@@ -115,7 +122,7 @@ int main(int argc, char *argv[]){
             cblas_dgemm(CblasColMajor, CblasNoTrans,CblasNoTrans,m,n,k,alpha,A,m,B,k,beta,C_ref,m);
             
             // add
-            printf("C[0][0] = %5.2f\n",C[0]);
+            //printf("C[0][0] = %5.2f\n",C[0]);
 
             if (!verify_matrix(C_ref,C,m*n)) {
                 printf("Failed to pass the correctness verification against Intel MKL. Exited.\n");
