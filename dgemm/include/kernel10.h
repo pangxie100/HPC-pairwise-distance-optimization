@@ -146,6 +146,12 @@ void pzydgemm_cpu_opt_k10(int M, int N, int K, double alpha, double *A, int LDA,
 
 ///*
 #define M_BLOCKING 192
+#define N_BLOCKING 112 // very big 2048
+#define K_BLOCKING 384
+//*/
+
+/*
+#define M_BLOCKING 192
 #define N_BLOCKING 96 // very big 2048
 #define K_BLOCKING 384
 //*/

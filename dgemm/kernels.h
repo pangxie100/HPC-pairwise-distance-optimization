@@ -8,6 +8,8 @@
 #include "./include/kernel8.h"
 #include "./include/kernel9.h"
 #include "./include/kernel10.h"
+#include "./include/kernel30.h"
+#include "./include/kernel50.h"
 #include "./include/kernel101.h"
 /*
 #include "./include/kernel11.h"
