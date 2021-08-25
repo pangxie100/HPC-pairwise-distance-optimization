@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]){
     if (argc != 2) {
-        printf("Please select a kernel (range 0 - 19, here 0 is for Intel MKL).\n");
+        printf("Please select a kernel (range 0 - 19,101, here 0 is for Intel MKL).\n");
         exit(-1);
     }
 
@@ -29,8 +29,8 @@ int main(int argc, char *argv[]){
                     11,12,13,14,15,16,17,18,19,20};
 
     int kernel_num=atoi(argv[1]);
-    if (kernel_num<0||kernel_num>19) {
-        printf("Please enter a valid kernel number (0-19).\n");
+    if (kernel_num<0||kernel_num>101) {
+        printf("Please enter a valid kernel number (0-19, 101).\n");
         exit(-2);
     }
     //int m, n, k, max_size = 3000;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
         //printf("\nM=N=K=%d:\n",m);
 
         // my style
-        ///*
+        /*
         m = 192 * SIZE[i_count];
         n = 96 * SIZE[i_count];
         k = 384 * SIZE[i_count];
@@ -113,6 +113,25 @@ int main(int argc, char *argv[]){
         m = 24 * 3;
         n = 8 * 3;
         k = 32 * 3;
+        //*/
+
+        /*
+        // small test case
+        m = 16;
+        n = 14;
+        k = 32;
+        //*/
+
+        /*
+        m = 16 * 3;
+        n = 14 * 3;
+        k = 32 * 3;
+        //*/
+
+        ///*
+        m = 192 * SIZE[i_count];
+        n = 112 * SIZE[i_count];
+        k = 384 * SIZE[i_count];
         //*/
         printf("\nM = %d, ", m);
         printf("N = %d, ", n);

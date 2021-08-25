@@ -1,6 +1,7 @@
 #define A(i,j) A[(i)+(j)*LDA]
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
+// 2*2 register blocking
 
 // C := alpha * op(A) * op(B) + beta * C
 void pzyscale_C_k3(int M, int N, double beta, double *C, int LDC){

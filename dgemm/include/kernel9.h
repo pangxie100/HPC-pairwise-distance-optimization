@@ -3,6 +3,8 @@
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
 // packing + cache blocking + 8*4 register blocking with AVX2 + loop unrolling * 4
+// The least number of AVX2 register needed is 8 + 2 + 1 = 11
+// Maybe we can try 8 * 6 kernel, which needs 12 + 2 + 1 = 15 (max is 16)
 
 // 8*4 register blocking, still can be improved by adding one 4*2 register blocking or 4*4
 
