@@ -2,12 +2,17 @@
 #define A(i,j) A[(i)+(j)*LDA]
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
+///*
 #define M_BLOCKING 192
 #define N_BLOCKING 112
 #define K_BLOCKING 384
-// "kernel 10" from new version: "Optimizing-DGEMM-on-Intel-CPUs-with-AVX512F"
-// but can not run, reason is not known
-
+//*/
+/*
+// test
+#define M_BLOCKING 16
+#define N_BLOCKING 8
+#define K_BLOCKING 32
+//*/
 void scale_c_k30(double *C,int M, int N, int LDC, double scalar){
     int i,j;
     for (i=0;i<M;i++){
@@ -530,16 +535,23 @@ void mydgemm_cpu_v30(int M, int N, int K, double alpha, double *A, int LDA, doub
     double *a_buffer = (double *)aligned_alloc(4096,K_BLOCKING*M_BLOCKING*sizeof(double));
     int m_count, n_count, k_count;
     int m_inc, n_inc, k_inc;
+    //printf("program safely reach here before three for loop.\n");
     for (n_count=0;n_count<N;n_count+=n_inc){
         n_inc = (N-n_count>N_BLOCKING)?N_BLOCKING:N-n_count;
         for (k_count=0;k_count<K;k_count+=k_inc){
             k_inc = (K-k_count>K_BLOCKING)?K_BLOCKING:K-k_count;
             packing_b_k30(B+k_count+n_count*LDB,b_buffer,LDB,k_inc,n_inc);
+            //printf("finish packing on B matrix\n");
             for (m_count=0;m_count<M;m_count+=m_inc){
-                m_inc = (M-m_count>M_BLOCKING)?M_BLOCKING:N-m_count;
+                //printf("m_count = %d\n", m_count);
+                //m_inc = (M-m_count>M_BLOCKING)?M_BLOCKING:N-m_count; // a bug from the original version : "N - m_count" is wrong, it should be "M - m_count" at the end of this line
+                m_inc = (M-m_count>M_BLOCKING)?M_BLOCKING:M-m_count;
+                //printf("m_inc = %d\n", m_inc);
                 packing_a_k30(A+m_count+k_count*LDA,a_buffer,LDA,m_inc,k_inc);
+                //printf("finish packing on A matrix\n");
                 //macro kernel: to compute C += A_tilt * B_tilt
                 macro_kernel_k30(a_buffer, b_buffer, m_inc, n_inc, k_inc, &C(m_count, n_count), LDC, alpha);
+                //printf("finish computing kernel\n");
             }
         }
     }
