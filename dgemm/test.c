@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
     randomize_matrix(B, max_k, max_n);
     randomize_matrix(C, max_m, max_n);
     
-    /*
+    ///*
     // test
     all_one_matrix(A, max_m, max_k);
     all_one_matrix(B, max_k, max_n);

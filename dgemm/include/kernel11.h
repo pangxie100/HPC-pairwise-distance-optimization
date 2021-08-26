@@ -8,7 +8,7 @@
 // 8*4 register blocking, still can be improved by adding one 4*2 register blocking or 4*4
 
 // C := alpha * op(A) * op(B) + beta * C
-void pzyscale_C_k10(int M, int N, double beta, double *C, int LDC){
+void pzyscale_C_k11(int M, int N, double beta, double *C, int LDC){
     int i, j;
     for (i = 0; i < M; i++){
         for (j = 0; j < N; j++){
@@ -17,9 +17,9 @@ void pzyscale_C_k10(int M, int N, double beta, double *C, int LDC){
     }
 }
 
-void pzydgemm_cpu_opt_k10(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
+void pzydgemm_cpu_opt_k11(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     int i, j, k;
-    if (beta != 1.0) pzyscale_C_k10(M, N, beta, C, LDC);
+    if (beta != 1.0) pzyscale_C_k11(M, N, beta, C, LDC);
     for (i = 0; i < M; i++){
         for (j = 0; j < N; j++){
             // add register reuse on C(i,j) to reduce the times of accessing C(i,j) in memory
@@ -41,36 +41,38 @@ void pzydgemm_cpu_opt_k10(int M, int N, int K, double alpha, double *A, int LDA,
 // printf("ax0[0] = %5.2f, ay0[0] = %5.2f, az0[0] = %5.2f\n", ax0[0], ay0[0], az0[0]);
 // printf("b00[0] = %5.2f, b01[0] = %5.2f\n", b00[0], b01[0]);
 // printf("cx0[0] = %5.2f, cy0[0] = %5.2f, cz0[0] = %5.2f\n", cx0[0], cy0[0], cz0[0]);
-#define KERNEL_K1_24x8_avx512_intrinsics_packing\
+
+// changed compared with kernel 10
+#define KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
     ax0 = _mm512_mul_pd(valpha, _mm512_loadu_pd(ptr_packing_a));\
     ay0 = _mm512_mul_pd(valpha, _mm512_loadu_pd(ptr_packing_a + 8));\
     az0 = _mm512_mul_pd(valpha, _mm512_loadu_pd(ptr_packing_a + 16));\
-    b00 = _mm512_set1_pd(*ptr_packing_b);\
-    b01 = _mm512_set1_pd(*(ptr_packing_b + 1));\
+    b00 = _mm512_set1_pd(*ptr_packing_b0);\
+    b01 = _mm512_set1_pd(*(ptr_packing_b0 + 1));\
     cx0 = _mm512_fmadd_pd(ax0,b00,cx0);\
     cx1 = _mm512_fmadd_pd(ax0,b01,cx1);\
     cy0 = _mm512_fmadd_pd(ay0,b00,cy0);\
     cy1 = _mm512_fmadd_pd(ay0,b01,cy1);\
     cz0 = _mm512_fmadd_pd(az0,b00,cz0);\
     cz1 = _mm512_fmadd_pd(az0,b01,cz1);\
-    b00 = _mm512_set1_pd(*(ptr_packing_b + 2));\
-    b01 = _mm512_set1_pd(*(ptr_packing_b + 3));\
+    b00 = _mm512_set1_pd(*(ptr_packing_b1));\
+    b01 = _mm512_set1_pd(*(ptr_packing_b1 + 1));\
     cx2 = _mm512_fmadd_pd(ax0,b00,cx2);\
     cx3 = _mm512_fmadd_pd(ax0,b01,cx3);\
     cy2 = _mm512_fmadd_pd(ay0,b00,cy2);\
     cy3 = _mm512_fmadd_pd(ay0,b01,cy3);\
     cz2 = _mm512_fmadd_pd(az0,b00,cz2);\
     cz3 = _mm512_fmadd_pd(az0,b01,cz3);\
-    b00 = _mm512_set1_pd(*(ptr_packing_b + 4));\
-    b01 = _mm512_set1_pd(*(ptr_packing_b + 5));\
+    b00 = _mm512_set1_pd(*(ptr_packing_b2));\
+    b01 = _mm512_set1_pd(*(ptr_packing_b2 + 1));\
     cx4 = _mm512_fmadd_pd(ax0,b00,cx4);\
     cx5 = _mm512_fmadd_pd(ax0,b01,cx5);\
     cy4 = _mm512_fmadd_pd(ay0,b00,cy4);\
     cy5 = _mm512_fmadd_pd(ay0,b01,cy5);\
     cz4 = _mm512_fmadd_pd(az0,b00,cz4);\
     cz5 = _mm512_fmadd_pd(az0,b01,cz5);\
-    b00 = _mm512_set1_pd(*(ptr_packing_b + 6));\
-    b01 = _mm512_set1_pd(*(ptr_packing_b + 7));\
+    b00 = _mm512_set1_pd(*(ptr_packing_b3));\
+    b01 = _mm512_set1_pd(*(ptr_packing_b3 + 1));\
     cx6 = _mm512_fmadd_pd(ax0,b00,cx6);\
     cx7 = _mm512_fmadd_pd(ax0,b01,cx7);\
     cy6 = _mm512_fmadd_pd(ay0,b00,cy6);\
@@ -78,14 +80,17 @@ void pzydgemm_cpu_opt_k10(int M, int N, int K, double alpha, double *A, int LDA,
     cz6 = _mm512_fmadd_pd(az0,b00,cz6);\
     cz7 = _mm512_fmadd_pd(az0,b01,cz7);\
     ptr_packing_a += 24;\
-    ptr_packing_b += 8;\
+    ptr_packing_b0 += 2;\
+    ptr_packing_b1 += 2;\
+    ptr_packing_b2 += 2;\
+    ptr_packing_b3 += 2;\
     k++;
 
 // K4 is "k_inc & -4", is not a index, should add to inner_k_count: inner_k_count + K4
 
 // test and debug
 // printf("cx0[0] = %5.2f, cy0[0] = %5.2f, cz0[0] = %5.2f\n", cx0[0], cy0[0], cz0[0]);
-#define macro_kernel_24xkx8_avx512_packing\
+#define macro_kernel_24xkx8_avx512_packing_v2\
     cx0 = _mm512_setzero_pd();\
     cx1 = _mm512_setzero_pd();\
     cx2 = _mm512_setzero_pd();\
@@ -111,13 +116,13 @@ void pzydgemm_cpu_opt_k10(int M, int N, int K, double alpha, double *A, int LDA,
     cz6 = _mm512_setzero_pd();\
     cz7 = _mm512_setzero_pd();\
     for (k = inner_k_count; k < inner_k_count + K4;){\
-        KERNEL_K1_24x8_avx512_intrinsics_packing\
-        KERNEL_K1_24x8_avx512_intrinsics_packing\
-        KERNEL_K1_24x8_avx512_intrinsics_packing\
-        KERNEL_K1_24x8_avx512_intrinsics_packing\
+        KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
+        KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
+        KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
+        KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
     }\
     for (k = inner_k_count + K4; k < inner_k_end;){\
-        KERNEL_K1_24x8_avx512_intrinsics_packing\
+        KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
     }\
     _mm512_storeu_pd(&C(i,j), _mm512_add_pd(cx0, _mm512_loadu_pd(&C(i,j))));\
     _mm512_storeu_pd(&C(i,j+1), _mm512_add_pd(cx1, _mm512_loadu_pd(&C(i,j+1))));\
@@ -163,34 +168,25 @@ void pzydgemm_cpu_opt_k10(int M, int N, int K, double alpha, double *A, int LDA,
 #define K_BLOCKING 32
 //*/
 
-void pzypacking_b_k10(double *packsrc, double *packdst, int LDB, int dim_k, int dim_n){
+// changed compared with kernel 10
+// changed from 8 to 2 (compared to kernel 10)
+void pzypacking_b_k11(double *packsrc, double *packdst, int LDB, int dim_k, int dim_n){
     // kernel A * B is 24 * 8, thus we need 8 pointers to store each number in one row (col-major)
-    double *src1, *src2, *src3, *src4, *src5, *src6, *src7, *src8, *dst;
+    // but here, we only use 2 pointers to store
+    double *src1, *src2, *dst;
     dst = packdst;
     int k, n;
-    for (n = 0; n < dim_n; n += 8){
+    for (n = 0; n < dim_n; n += 2){
         src1 = packsrc + n * LDB;
         src2 = src1 + LDB;
-        src3 = src2 + LDB;
-        src4 = src3 + LDB;
-        src5 = src4 + LDB;
-        src6 = src5 + LDB;
-        src7 = src6 + LDB;
-        src8 = src7 + LDB;
         for (k = 0; k < dim_k; k++){
             *dst = *src1; src1++; dst++;
             *dst = *src2; src2++; dst++;
-            *dst = *src3; src3++; dst++;
-            *dst = *src4; src4++; dst++;
-            *dst = *src5; src5++; dst++;
-            *dst = *src6; src6++; dst++;
-            *dst = *src7; src7++; dst++;
-            *dst = *src8; src8++; dst++;
         }
     }
 }
 
-void pzypacking_a_k10(double *packsrc, double *packdst, int LDA, int dim_m, int dim_k){
+void pzypacking_a_k11(double *packsrc, double *packdst, int LDA, int dim_m, int dim_k){
     // kernel A * B is 24 * 8, we can use one pointer to store 24 numbers in one column (col-major)
     double *src, *dst;
     dst = packdst;
@@ -211,8 +207,9 @@ void pzypacking_a_k10(double *packsrc, double *packdst, int LDA, int dim_m, int 
     }
 }
 
-void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
-    if (beta != 1.0) pzyscale_C_k10(M, N, beta, C, LDC);
+// changed compared with kernel 10
+void pzydgemm_cpu_v11(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
+    if (beta != 1.0) pzyscale_C_k11(M, N, beta, C, LDC);
     // difference between malloc and aligned_alloc : 
     // https://stackoverflow.com/questions/39677063/difference-between-aligned-malloc-and-standard-malloc
     
@@ -222,7 +219,7 @@ void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, dou
     // it says that "K_BLOCKING * N_BLOCKING * sizeof(double)" or "K_BLOCKING * M_BLOCKING * sizeof(double)" should be an integral multiple of 4096 here
     double *b_buffer = (double *)aligned_alloc(4096,K_BLOCKING*N_BLOCKING*sizeof(double));
     double *a_buffer = (double *)aligned_alloc(4096,K_BLOCKING*M_BLOCKING*sizeof(double));
-    double *ptr_packing_a, *ptr_packing_b;
+    double *ptr_packing_a, *ptr_packing_b0, *ptr_packing_b1, *ptr_packing_b2, *ptr_packing_b3;
     __m512d valpha = _mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
     __m512d ax0, ay0, az0, b00, b01, b02, b03;
     __m512d cx0, cx1, cx2, cx3, cx4, cx5, cx6, cx7, cy0, cy1, cy2, cy3, cy4, cy5, cy6, cy7, cz0, cz1, cz2, cz3, cz4, cz5, cz6, cz7;
@@ -241,12 +238,44 @@ void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, dou
 
         for (k_count = 0; k_count < K; k_count += k_inc){
                 k_inc = K - k_count > K_BLOCKING ? K_BLOCKING : K - k_count;
-                pzypacking_b_k10(B + k_count + n_count * LDB, b_buffer, LDB, k_inc, n_inc);
+                //printf("k_inc = %d\n", k_inc);
+                //printf("LDB = %d\n", LDB);
 
+                pzypacking_b_k11(B + k_count + n_count * LDB, b_buffer, LDB, k_inc, n_inc);
+                /*
+                // test the output of b_buffer
+                double *testbuffer0, *testbuffer1, *testbuffer2,*testbuffer3;
+                testbuffer0 = b_buffer;
+                testbuffer1 = b_buffer + 2 * k_inc;
+                testbuffer2 = b_buffer + 4 * k_inc;
+                testbuffer3 = b_buffer + 6 * k_inc;
+                printf("b_buffer:\n");
+                for (int b = 0; b < k_inc; b++){
+                    printf("%5.2f ", *testbuffer0);
+                    testbuffer0++;
+                    printf("%5.2f ", *testbuffer0);
+                    testbuffer0++; 
+                    printf("%5.2f ", *testbuffer1);
+                    testbuffer1++;
+                    printf("%5.2f ", *testbuffer1);
+                    testbuffer1++;
+                    printf("%5.2f ", *testbuffer2);
+                    testbuffer2++;
+                    printf("%5.2f ", *testbuffer2);
+                    testbuffer2++;
+                    printf("%5.2f ", *testbuffer3);
+                    testbuffer3++;
+                    printf("%5.2f ", *testbuffer3);
+                    testbuffer3++;
+                    printf("\n"); 
+                }
+                printf("\n");
+                //*/
             for (m_count = 0; m_count < M; m_count += m_inc){
                 //printf("m_count = %d\n", m_count);
+
                 m_inc = M - m_count > M_BLOCKING ? M_BLOCKING : M - m_count;
-                pzypacking_a_k10(A + m_count + k_count * LDA, a_buffer, LDA, m_inc, k_inc);
+                pzypacking_a_k11(A + m_count + k_count * LDA, a_buffer, LDA, m_inc, k_inc);
 
                 N8 = n_inc & -8;
                 //M24 = m_inc & -24; // this way only for 2^x, 24 is not.
@@ -255,33 +284,105 @@ void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, dou
 
                 //printf("M24 = %d, N8 = %d, K4 = %d\n", M24, N8, K4);
                 for (inner_m_count = 0; inner_m_count < M24; inner_m_count += 24){
+                    //printf("inner_m_count = %d\n", inner_m_count);
+
                     i = m_count + inner_m_count;
                     //printf("i = %d\n", i);
+
                     // each time for specific i, j loop means to compute all 24*8 matrix in same row on matrix C.
                     for (inner_n_count = 0; inner_n_count < N8; inner_n_count += 8){ 
+                        //printf("inner_n_count = %d\n", inner_n_count);
+
                         j = n_count + inner_n_count;
                         //printf("j = %d\n", j);
+
                         inner_k_count = k_count;
                         //printf("inner_k_count = %d\n", inner_k_count);
+
                         inner_k_end = inner_k_count + k_inc;
                         //printf("inner_k_end = %d\n", inner_k_end);
 
                         ptr_packing_a = a_buffer + inner_m_count * k_inc;
-                        ptr_packing_b = b_buffer + k_inc * inner_n_count;
+                        ptr_packing_b0 = b_buffer + k_inc * inner_n_count;
+                        /*
+                        // in new version from Yujia, it used K, but I think it's wrong
+                        // because buffer is used for each block, not the whole matrix, so it should not use K, it should use k_inc
+                        ptr_packing_b1 = ptr_packing_b0 + K * 2;
+                        ptr_packing_b2 = ptr_packing_b1 + K * 2;
+                        ptr_packing_b3 = ptr_packing_b2 + K * 2;
+                        */
+                        ptr_packing_b1 = ptr_packing_b0 + k_inc * 2;
+                        ptr_packing_b2 = ptr_packing_b1 + k_inc * 2;
+                        ptr_packing_b3 = ptr_packing_b2 + k_inc * 2;
 
                         /*
                         // test the output of a_buffer
                         double *testbuffer;
                         testbuffer = ptr_packing_a;
-                        for (int b = 0; b < M_BLOCKING * K_BLOCKING; b++){
+                        for (int b = 0; b < m_inc * k_inc; b++){
                             printf("%5.2f ", *testbuffer);
                             testbuffer++;   
                         }
                         printf("\n");
                         */
+                        /*
+                        // test the output of b_buffer
+                        double *testbuffer;
+                        int tmp = 0;
+                        testbuffer = ptr_packing_b0;
+                        printf("buffer part ptr_packing_b0:\n");
+                        for (int b = 0; b < 2 * k_inc; b++){
+                            printf("%5.2f ", *testbuffer);
+                            testbuffer++; 
+                            tmp++;
+                            if (tmp > 1 && tmp % 2 == 0){
+                                printf("\n");
+                            }  
+                        }
+                        printf("\n");
+
+                        tmp = 0;
+                        testbuffer = ptr_packing_b1;
+                        printf("buffer part ptr_packing_b1:\n");
+                        for (int b = 0; b < 2 * k_inc; b++){
+                            printf("%5.2f ", *testbuffer);
+                            testbuffer++; 
+                            tmp++;
+                            if (tmp > 1 && tmp % 2 == 0){
+                                printf("\n");
+                            }  
+                        }
+                        printf("\n");
+
+                        tmp = 0;
+                        testbuffer = ptr_packing_b2;
+                        printf("buffer part ptr_packing_b2:\n");
+                        for (int b = 0; b < 2 * k_inc; b++){
+                            printf("%5.2f ", *testbuffer);
+                            testbuffer++; 
+                            tmp++;
+                            if (tmp > 1 && tmp % 2 == 0){
+                                printf("\n");
+                            }  
+                        }
+                        printf("\n");
+
+                        tmp = 0;
+                        testbuffer = ptr_packing_b3;
+                        printf("buffer part ptr_packing_b3:\n");
+                        for (int b = 0; b < 2 * k_inc; b++){
+                            printf("%5.2f ", *testbuffer);
+                            testbuffer++; 
+                            tmp++;
+                            if (tmp > 1 && tmp % 2 == 0){
+                                printf("\n");
+                            }  
+                        }
+                        printf("\n");
+                        //*/
 
                         // add register reuse on C(i,j) to reduce the times of accessing C(i,j) in memory
-                        macro_kernel_24xkx8_avx512_packing
+                        macro_kernel_24xkx8_avx512_packing_v2
                         /*
                         // print matrix
                         printf("matrix A:\n");
@@ -326,11 +427,11 @@ void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, dou
                 // boundary conditions
                 if (M24 != m_inc) {
                     printf("enter edge case for m_inc. \n");
-                    pzydgemm_cpu_opt_k10(m_inc - M24, n_inc, k_inc, alpha, &A(M24, 0), LDA, B, LDB, 1.0, &C(M24, 0), LDC); // A+M24 move to M24 row, because it's column major
+                    pzydgemm_cpu_opt_k11(m_inc - M24, n_inc, k_inc, alpha, &A(M24, 0), LDA, B, LDB, 1.0, &C(M24, 0), LDC); // A+M24 move to M24 row, because it's column major
                 }
                 if (N8 != n_inc) {
                     printf("enter edge case for n_inc. \n");
-                    pzydgemm_cpu_opt_k10(M24, n_inc - N8, k_inc, alpha, A, LDA, &B(0, N8), LDB, 1.0, &C(0, N8), LDC);
+                    pzydgemm_cpu_opt_k11(M24, n_inc - N8, k_inc, alpha, A, LDA, &B(0, N8), LDB, 1.0, &C(0, N8), LDC);
                 }
             }
             //printf("m_count = %d\n", m_count);
@@ -338,7 +439,7 @@ void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, dou
             // edge case for M
             if (m_inc != M_BLOCKING && m_count != 0){
                 printf("enter edge case for M. \n");
-                pzydgemm_cpu_opt_k10(m_inc, N_BLOCKING, K, alpha, &A(m_count, 0), LDA, &B(0, n_count), LDB, 1.0, &C(m_count, n_count), LDC);
+                pzydgemm_cpu_opt_k11(m_inc, N_BLOCKING, K, alpha, &A(m_count, 0), LDA, &B(0, n_count), LDB, 1.0, &C(m_count, n_count), LDC);
             }
 
         }
@@ -346,7 +447,7 @@ void pzydgemm_cpu_v10(int M, int N, int K, double alpha, double *A, int LDA, dou
         // edge case for N
         if (n_inc != N_BLOCKING && n_count != 0){
             printf("enter edge case for N. \n");
-            pzydgemm_cpu_opt_k10(M, n_inc, K, alpha, A, LDA, &B(0, n_count), LDB, 1.0, &C(0, n_count), LDC);
+            pzydgemm_cpu_opt_k11(M, n_inc, K, alpha, A, LDA, &B(0, n_count), LDB, 1.0, &C(0, n_count), LDC);
         }
     }
     free(a_buffer);free(b_buffer);

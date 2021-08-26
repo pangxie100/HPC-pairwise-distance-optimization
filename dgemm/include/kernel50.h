@@ -258,4 +258,5 @@ void mydgemm_cpu_v50(\
             }
         }
     }
+    free(a_buffer);free(b_buffer);
 }

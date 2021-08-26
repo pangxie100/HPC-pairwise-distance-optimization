@@ -383,5 +383,5 @@ void pzydgemm_cpu_v101(int M, int N, int K, double alpha, double *A, int LDA, do
             pzydgemm_cpu_opt_k101(M, n_inc, K, alpha, A, LDA, &B(0, n_count), LDB, 1.0, &C(0, n_count), LDC);
         }
     }
-    
+    free(a_buffer);free(b_buffer);
 }
