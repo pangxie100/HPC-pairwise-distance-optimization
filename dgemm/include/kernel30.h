@@ -2,6 +2,7 @@
 #define A(i,j) A[(i)+(j)*LDA]
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
+// kernel 10 new version from Optimizing-DGEMM-on-Intel-CPUs-with-AVX512F
 ///*
 #define M_BLOCKING 192
 #define N_BLOCKING 112
