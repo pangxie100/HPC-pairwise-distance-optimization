@@ -82,8 +82,8 @@ void pzydgemm_cpu_opt_k9(int M, int N, int K, double alpha, double *A, int LDA, 
 
 ///*
 #define M_BLOCKING 192
-//#define N_BLOCKING 112 // very big 2240
-#define N_BLOCKING 2240
+#define N_BLOCKING 112 // very big 2240
+//#define N_BLOCKING 2240 // get a higher performance
 #define K_BLOCKING 384
 //*/
 

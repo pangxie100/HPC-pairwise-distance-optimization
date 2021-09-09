@@ -7,13 +7,15 @@
 #include "./include/kernel7.h"
 #include "./include/kernel8.h"
 #include "./include/kernel9.h"
+#include "./include/kernel91.h"
 #include "./include/kernel10.h"
 #include "./include/kernel30.h"
 #include "./include/kernel50.h"
 #include "./include/kernel101.h"
 #include "./include/kernel11.h"
-/*
 #include "./include/kernel12.h"
+#include "./include/kernel120.h"
+/*
 #include "./include/kernel13.h"
 #include "./include/kernel14.h"
 #include "./include/kernel15.h"

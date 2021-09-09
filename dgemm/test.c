@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]){
     if (argc != 2) {
-        printf("Please select a kernel (range 0 - 19, 30, 50, 101, here 0 is for Intel MKL).\n");
+        printf("Please select a kernel (range 0 - 19, 30, 50, 91, 101, 120, here 0 is for Intel MKL).\n");
         exit(-1);
     }
 
@@ -29,8 +29,8 @@ int main(int argc, char *argv[]){
                     11,12,13,14,15,16,17,18,19,20};
 
     int kernel_num=atoi(argv[1]);
-    if (kernel_num<0||kernel_num>101) {
-        printf("Please enter a valid kernel number (0-19, 30, 50, 101).\n");
+    if (kernel_num<0||kernel_num>200) {
+        printf("Please enter a valid kernel number (0-19, 30, 50, 91, 101, 120).\n");
         exit(-2);
     }
     //int m, n, k, max_size = 3000;
