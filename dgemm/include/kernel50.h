@@ -3,7 +3,7 @@
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
 #define M_BLOCKING 192
-#define N_BLOCKING 112
+#define N_BLOCKING 168
 #define K_BLOCKING 384
 // kernel 10 old version from GEMM_tutorial
 

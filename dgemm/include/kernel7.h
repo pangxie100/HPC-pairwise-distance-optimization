@@ -31,10 +31,8 @@ void pzydgemm_cpu_opt_k7(int M, int N, int K, double alpha, double *A, int LDA, 
     }
 }
 
-// 为什么这里不需要 __m256声明？ 是因为使用_mm256命令会自动声明__m256吗？不是，因为函数中事先统一声明过了
-// ax0: a00,a10,a20,a30; loadu 不需要对齐256
-// ay0: a40,a50,a60,a70; loadu 不需要对齐256
-// 学长这里的表达方式没看懂，学长的意思是说乘出来是一个4*8的部分结果C矩阵吗？不应该是8*4吗？
+// ax0: a00,a10,a20,a30; loadu: unaligned, not need to be aligned 
+// ay0: a40,a50,a60,a70; loadu: unaligned, not need to be aligned 
 #define KERNEL_K1_8x4_avx2_intrinsics\
     ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k)));\
     ay0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i+4,k)));\
@@ -56,7 +54,7 @@ void pzydgemm_cpu_v7(int M, int N, int K, double alpha, double *A, int LDA, doub
     int i,j,k;
     if (beta != 1.0) pzyscale_C_k7(M,N,beta,C,LDC);
     // get an integer which is divisible by 2(eg: 16 divided by 2 is 8)
-    int M8=M&-8, N4=N&-4, K4= K&-4; // 返回整除8/4/4的最大整数
+    int M8=M&-8, N4=N&-4, K4= K&-4; // // return maximal numbers which is divisible by 8/4/4
     __m256d valpha = _mm256_set1_pd(alpha); // broadcast alpha to a 256-bit vector, input is a double value
     __m256d ax0, ay0, b00, b01, b02, b03;
     for (i = 0; i < M8; i+=8){
@@ -72,14 +70,14 @@ void pzydgemm_cpu_v7(int M, int N, int K, double alpha, double *A, int LDA, doub
             __m256d cy2 = _mm256_setzero_pd();
             __m256d cy3 = _mm256_setzero_pd();
             // unroll the loop by 4 times
-            for (k = 0; k < K4;){ // 由于在宏定义中有k++，因此此处不需要再写
+            for (k = 0; k < K4;){ // since we have "k++" in the following "#define" part, we don't need "k+=4" here
                 KERNEL_K1_8x4_avx2_intrinsics
                 KERNEL_K1_8x4_avx2_intrinsics
                 KERNEL_K1_8x4_avx2_intrinsics
                 KERNEL_K1_8x4_avx2_intrinsics
             }
             // deal with the edge case for K
-            for (k = K4; k < K;){ // 由于在宏定义中有k++，因此此处不需要再写
+            for (k = K4; k < K;){ // since we have "k++" in the following "#define" part, we don't need "k++" here
                 KERNEL_K1_8x4_avx2_intrinsics
             }
             _mm256_storeu_pd(&C(i,j), _mm256_add_pd(cx0, _mm256_loadu_pd(&C(i,j))));

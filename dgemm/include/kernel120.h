@@ -5,8 +5,9 @@
 #define C(i,j) C[(i)+(j)*LDC]
 ///*
 #define M_BLOCKING 192
-#define N_BLOCKING 112 // very big 2240
+//#define N_BLOCKING 112 // very big 2240
 //#define N_BLOCKING 2240 // get a higher performance
+#define N_BLOCKING 168 // 3360
 #define K_BLOCKING 384
 //*/
 
@@ -69,28 +70,30 @@ void pzypacking_b_k120(double *packsrc, double *packdst, int LDB, int dim_k, int
     }
 }
 
-void pzypacking_a_k120(double *packsrc, double *packdst, int LDA, int dim_m, int dim_k){
+// changed vs kernel 11
+void pzypacking_a_k120(double alpha, double *packsrc, double *packdst, int LDA, int dim_m, int dim_k){
     // kernel A * B is 24 * 8, we can use one pointer to store 24 numbers in one column (col-major)
     double *src, *dst;
     dst = packdst;
+    __m512d valpha=_mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
     //int i, k;
     //for (i = 0; i < dim_m, i += 24){
     int i, k, remain = dim_m;
     for (i = 0; remain > 23; remain -= 24, i += 24){
         src = packsrc + i;
         for (k = 0; k < dim_k; k++){
-            _mm512_store_pd(dst, _mm512_loadu_pd(src));
+            _mm512_store_pd(dst, _mm512_mul_pd(_mm512_loadu_pd(src), valpha));
             // we need to store the following 8 number to the following place,
             // so, the destination shoud also +8: dst + 8; dst + 16
-            _mm512_store_pd(dst + 8, _mm512_loadu_pd(src + 8));
-            _mm512_store_pd(dst + 16, _mm512_loadu_pd(src + 16));
+            _mm512_store_pd(dst + 8, _mm512_mul_pd(_mm512_loadu_pd(src + 8), valpha));
+            _mm512_store_pd(dst + 16, _mm512_mul_pd(_mm512_loadu_pd(src + 16), valpha));
             src += LDA;
             dst += 24;
         }
     }
 }
 
-// changed compared with kernel 11
+// changed vs kernel 11
 #define init_m24n1 \
   "vpxorq %%zmm8,%%zmm8,%%zmm8; vpxorq %%zmm9,%%zmm9,%%zmm9; vpxorq %%zmm10,%%zmm10,%%zmm10;"
 #define init_m24n2 \
@@ -189,7 +192,7 @@ void macro_kernel_24xkx8_avx512_packing_inlineASM_k120(double *ptr_packing_a, do
     );
 }
 
-// changed compared with kernel 11
+// changed vs kernel 11
 void pzydgemm_cpu_v120(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     if (beta != 1.0) pzyscale_C_k120(M, N, beta, C, LDC);
     // difference between malloc and aligned_alloc : 
@@ -202,9 +205,6 @@ void pzydgemm_cpu_v120(int M, int N, int K, double alpha, double *A, int LDA, do
     double *b_buffer = (double *)aligned_alloc(4096,K_BLOCKING*N_BLOCKING*sizeof(double));
     double *a_buffer = (double *)aligned_alloc(4096,K_BLOCKING*M_BLOCKING*sizeof(double));
     double *ptr_packing_a, *ptr_packing_b, *ptr_c;
-    __m512d valpha = _mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
-    __m512d ax0, ay0, az0, b00, b01, b02, b03;
-    __m512d cx0, cx1, cx2, cx3, cx4, cx5, cx6, cx7, cy0, cy1, cy2, cy3, cy4, cy5, cy6, cy7, cz0, cz1, cz2, cz3, cz4, cz5, cz6, cz7;
 
     int n_count = 0, k_count = 0, m_count = 0;
     int n_inc = 0, k_inc = 0, m_inc = 0;
@@ -229,7 +229,7 @@ void pzydgemm_cpu_v120(int M, int N, int K, double alpha, double *A, int LDA, do
                 //printf("m_count = %d\n", m_count);
 
                 m_inc = M - m_count > M_BLOCKING ? M_BLOCKING : M - m_count;
-                pzypacking_a_k120(A + m_count + k_count * LDA, a_buffer, LDA, m_inc, k_inc);
+                pzypacking_a_k120(alpha, A + m_count + k_count * LDA, a_buffer, LDA, m_inc, k_inc);
 
                 N8 = n_inc & -8;
                 //M24 = m_inc & -24; // this way only for 2^x, 24 is not.

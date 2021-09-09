@@ -5,7 +5,28 @@
 // discontinuous packing(2 - 2 packing) + cache blocking + 24*8 register blocking with AVX512 + loop unrolling * 4
 // The least number of AVX512 register needed is 24 + 3 +1 = 28 (max is 32)
 
-// 8*4 register blocking, still can be improved by adding one 4*2 register blocking or 4*4
+///*
+#define M_BLOCKING 192
+//#define N_BLOCKING 112 // very big 2240
+//#define N_BLOCKING 2240 // get a higher performance
+#define N_BLOCKING 168 // 3360
+#define K_BLOCKING 384
+//*/
+
+/*
+#define M_BLOCKING 192
+#define N_BLOCKING 96 // very big 2048
+#define K_BLOCKING 384
+//*/
+
+/*
+// test
+#define M_BLOCKING 24
+#define N_BLOCKING 8
+#define K_BLOCKING 32
+//*/
+
+// 24*8 register blocking, still can be improved by adding one 24*4 register blocking or 24*2 ...
 
 // C := alpha * op(A) * op(B) + beta * C
 void pzyscale_C_k11(int M, int N, double beta, double *C, int LDC){
@@ -35,7 +56,6 @@ void pzydgemm_cpu_opt_k11(int M, int N, int K, double alpha, double *A, int LDA,
 // _mm512_loadu_pd(ptr_packing_a) use pointer as its input becasue it needs “void const* mem_addr" which is an address
 // _mm512_set1_pd(*ptr_packing_b) use "*ptr_packing_b" because it needs a double-type number
 // Later, we can compare the performance difference between _mm512_set1_pd() and _mm512_broadcastsd_pd() (if this broadcast function can be used)
-// In theory, 32 avx512 registers, so we can use 4 registers for B matrix (b00,b01,b02,b03)
 
 // test and debug 
 // printf("ax0[0] = %5.2f, ay0[0] = %5.2f, az0[0] = %5.2f\n", ax0[0], ay0[0], az0[0]);
@@ -149,26 +169,6 @@ void pzydgemm_cpu_opt_k11(int M, int N, int K, double alpha, double *A, int LDA,
     _mm512_storeu_pd(&C(i+16,j+6), _mm512_add_pd(cz6, _mm512_loadu_pd(&C(i+16,j+6))));\
     _mm512_storeu_pd(&C(i+16,j+7), _mm512_add_pd(cz7, _mm512_loadu_pd(&C(i+16,j+7))));
 
-///*
-#define M_BLOCKING 192
-#define N_BLOCKING 112 // very big 2240
-//#define N_BLOCKING 2240 // get a higher performance
-#define K_BLOCKING 384
-//*/
-
-/*
-#define M_BLOCKING 192
-#define N_BLOCKING 96 // very big 2048
-#define K_BLOCKING 384
-//*/
-
-/*
-// test
-#define M_BLOCKING 24
-#define N_BLOCKING 8
-#define K_BLOCKING 32
-//*/
-
 // changed compared with kernel 10
 // changed from 8 to 2 (compared to kernel 10)
 void pzypacking_b_k11(double *packsrc, double *packdst, int LDB, int dim_k, int dim_n){
@@ -222,7 +222,7 @@ void pzydgemm_cpu_v11(int M, int N, int K, double alpha, double *A, int LDA, dou
     double *a_buffer = (double *)aligned_alloc(4096,K_BLOCKING*M_BLOCKING*sizeof(double));
     double *ptr_packing_a, *ptr_packing_b0, *ptr_packing_b1, *ptr_packing_b2, *ptr_packing_b3;
     __m512d valpha = _mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
-    __m512d ax0, ay0, az0, b00, b01, b02, b03;
+    __m512d ax0, ay0, az0, b00, b01;
     __m512d cx0, cx1, cx2, cx3, cx4, cx5, cx6, cx7, cy0, cy1, cy2, cy3, cy4, cy5, cy6, cy7, cz0, cz1, cz2, cz3, cz4, cz5, cz6, cz7;
 
     int n_count = 0, k_count = 0, m_count = 0;

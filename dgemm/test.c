@@ -5,11 +5,17 @@
 #include "mkl.h"
 //#define verbose 1
 
+#define M_BLOCKING 192
+//#define N_BLOCKING 96
+//#define N_BLOCKING 112
+#define N_BLOCKING 168
+#define K_BLOCKING 384
+
 #define MYDGEMM dgemm_asm
 
 int main(int argc, char *argv[]){
     if (argc != 2) {
-        printf("Please select a kernel (range 0 - 19, 30, 50, 91, 101, 120, here 0 is for Intel MKL).\n");
+        printf("Please select a kernel (range 0 - 19, 30, 50, 91, 92, 101, 111, 120, 121, here 0 is for Intel MKL).\n");
         exit(-1);
     }
 
@@ -30,20 +36,19 @@ int main(int argc, char *argv[]){
 
     int kernel_num=atoi(argv[1]);
     if (kernel_num<0||kernel_num>200) {
-        printf("Please enter a valid kernel number (0-19, 30, 50, 91, 101, 120).\n");
+        printf("Please enter a valid kernel number (0-19, 30, 50, 91, 92, 101, 111, 120, 121).\n");
         exit(-2);
     }
     //int m, n, k, max_size = 3000;
-    //int m, n, k, max_m = 192 * 20, max_n = 96 * 20, max_k = 384 * 20;
-    int m, n, k, max_m = 192 * 20, max_n = 112 * 20, max_k = 384 * 20;
+    int m, n, k, max_m = M_BLOCKING * 20, max_n = N_BLOCKING * 20, max_k = K_BLOCKING * 20;
     int n_count, N=3, upper_limit;
     if (kernel_num <= 4 && kernel_num != 0) upper_limit = 10;
     else upper_limit = 20;
 
     double *A=NULL,*B=NULL,*C=NULL,*C_ref=NULL;
 
-    //double alpha = 2.0, beta = -1.5; // two arbitary input parameters
-    double alpha = 1.0, beta = 1.0;
+    double alpha = 2.0, beta = -1.5; // two arbitary input parameters
+    //double alpha = 1.0, beta = 1.0;
 
     double t0,t1;
 
@@ -130,9 +135,9 @@ int main(int argc, char *argv[]){
         //*/
 
         ///*
-        m = 192 * SIZE[i_count];
-        n = 112 * SIZE[i_count];
-        k = 384 * SIZE[i_count];
+        m = M_BLOCKING * SIZE[i_count];
+        n = N_BLOCKING * SIZE[i_count];
+        k = K_BLOCKING * SIZE[i_count];
         //*/
         printf("\nM = %d, ", m);
         printf("N = %d, ", n);

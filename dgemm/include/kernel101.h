@@ -5,6 +5,32 @@
 // packing + cache blocking + 16 * 14 register blocking with AVX512 + loop unrolling * 4
 // The least number of AVX512 register needed is 28 + 2 + 1 = 31 (max is 32)
 
+/*
+#define M_BLOCKING 192
+#define N_BLOCKING 96 // very big 2048
+#define K_BLOCKING 384
+//*/
+
+///*
+#define M_BLOCKING 192
+//#define N_BLOCKING 112 // 2240
+#define N_BLOCKING 168 // 3360
+#define K_BLOCKING 384
+//*/
+
+/*
+#define M_BLOCKING 48
+#define N_BLOCKING 56
+#define K_BLOCKING 32
+//*/
+
+/*
+// test
+#define M_BLOCKING 16
+#define N_BLOCKING 14
+#define K_BLOCKING 32
+//*/
+
 // 8*4 register blocking, still can be improved by adding one 4*2 register blocking or 4*4
 
 // C := alpha * op(A) * op(B) + beta * C
@@ -160,31 +186,6 @@ void pzydgemm_cpu_opt_k101(int M, int N, int K, double alpha, double *A, int LDA
     _mm512_storeu_pd(&C(i+8,j+11), _mm512_add_pd(cy11, _mm512_loadu_pd(&C(i+8,j+11))));\
     _mm512_storeu_pd(&C(i+8,j+12), _mm512_add_pd(cy12, _mm512_loadu_pd(&C(i+8,j+12))));\
     _mm512_storeu_pd(&C(i+8,j+13), _mm512_add_pd(cy13, _mm512_loadu_pd(&C(i+8,j+13))));
-
-/*
-#define M_BLOCKING 192
-#define N_BLOCKING 96 // very big 2048
-#define K_BLOCKING 384
-//*/
-
-///*
-#define M_BLOCKING 192
-#define N_BLOCKING 112 
-#define K_BLOCKING 384
-//*/
-
-/*
-#define M_BLOCKING 48
-#define N_BLOCKING 56
-#define K_BLOCKING 32
-//*/
-
-/*
-// test
-#define M_BLOCKING 16
-#define N_BLOCKING 14
-#define K_BLOCKING 32
-//*/
 
 void pzypacking_b_k101(double *packsrc, double *packdst, int LDB, int dim_k, int dim_n){
     // kernel A * B is 16 * 14, thus we need 14 pointers to store each number in one row (col-major)

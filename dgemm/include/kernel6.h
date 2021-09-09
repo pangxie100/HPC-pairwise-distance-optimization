@@ -31,10 +31,10 @@ void pzydgemm_cpu_opt_k6(int M, int N, int K, double alpha, double *A, int LDA, 
     }
 }
 
-// 为什么这里不需要 __m256声明？ 因为函数中事先统一声明过了
-// ax0: a00,a10,a20,a30; loadu 不需要对齐256
-// 注意：注释不能写在宏定义中，否则会报错
-
+// all these variables have been declared in the previous part in the function
+// ax0: a00,a10,a20,a30; loadu: unaligned, not need to be aligned 
+// ay0: a40,a50,a60,a70; loadu: unaligned, not need to be aligned 
+// Attention: comments cannot be written in the "#define part", they can be written before or after the whole part
 #define KERNEL_K1_4x4_avx2_intrinsics\
     ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k)));\
     b00 = _mm256_broadcast_sd(&B(k,j));\
@@ -47,7 +47,7 @@ void pzydgemm_cpu_opt_k6(int M, int N, int K, double alpha, double *A, int LDA, 
     cx3 = _mm256_fmadd_pd(ax0,b03,cx3);\
     k++;
 
-// 4 * 1 算子(kernel) 
+// 4 * 1 kernel 
 #define KERNEL_K2_4x1_avx2_intrinsics\
     ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k)));\
     b00 = _mm256_broadcast_sd(&B(k,j));\
@@ -58,7 +58,7 @@ void pzydgemm_cpu_v6(int M, int N, int K, double alpha, double *A, int LDA, doub
     int i,j,k;
     if (beta != 1.0) pzyscale_C_k6(M,N,beta,C,LDC);
     // get an integer which is divisible by 2(eg: 16 divided by 2 is 8)
-    int M4=M&-4, N4=N&-4, K4= K&-4; // 返回整除4的最大整数
+    int M4=M&-4, N4=N&-4, K4= K&-4; // return maximal numbers which are divisible by 4
     __m256d valpha = _mm256_set1_pd(alpha); // broadcast alpha to a 256-bit vector, input is a double value
     __m256d ax0, b00, b01, b02, b03;
     for (i = 0; i < M4; i+=4){
@@ -69,14 +69,14 @@ void pzydgemm_cpu_v6(int M, int N, int K, double alpha, double *A, int LDA, doub
             __m256d cx2 = _mm256_setzero_pd();
             __m256d cx3 = _mm256_setzero_pd();
             // unroll the loop by 4 times
-            for (k = 0; k < K4;){ // 由于在宏定义中有k++，因此此处不需要再写
+            for (k = 0; k < K4;){ // since we have "k++" in the following "#define" part, we don't need "k+=4" here
                 KERNEL_K1_4x4_avx2_intrinsics
                 KERNEL_K1_4x4_avx2_intrinsics
                 KERNEL_K1_4x4_avx2_intrinsics
                 KERNEL_K1_4x4_avx2_intrinsics
             }
             // deal with the edge case for K
-            for (k = K4; k < K;){ // 由于在宏定义中有k++，因此此处不需要再写
+            for (k = K4; k < K;){ // since we have "k++" in the following "#define" part, we don't need "k++" here
                 KERNEL_K1_4x4_avx2_intrinsics
             }
             _mm256_storeu_pd(&C(i,j), _mm256_add_pd(cx0, _mm256_loadu_pd(&C(i,j))));
@@ -88,6 +88,5 @@ void pzydgemm_cpu_v6(int M, int N, int K, double alpha, double *A, int LDA, doub
     if(M4 == M && N4 == N) return;
     // boundary conditions
     if (M4 != M) pzydgemm_cpu_opt_k6(M - M4, N, K, alpha, A + M4, LDA, B, LDB, 1.0, &C(M4, 0), LDC); // A+M4 move to M4 row, because it's column major
-    // 疑问：C语言是怎么知道这是column major的？为什么A+M4就能正确移动到第M4行第一列的位置？
     if (N4 != N) pzydgemm_cpu_opt_k6(M4, N - N4, K, alpha, A, LDA, &B(0, N4), LDB, 1.0, &C(0, N4), LDC);
 }

@@ -4,6 +4,20 @@
 #define C(i,j) C[(i)+(j)*LDC]
 // cache blocking + 8*4 register blocking with AVX2 + loop unrolling * 4
 
+///*
+#define M_BLOCKING 192
+//#define N_BLOCKING 112 // very big 2048
+#define N_BLOCKING 168 // big 3360
+#define K_BLOCKING 384
+//*/
+
+/*
+// test
+#define M_BLOCKING 16
+#define N_BLOCKING 8
+#define K_BLOCKING 32
+//*/
+
 // 8*4 register blocking, still can be improved by adding one 4*2 register blocking
 
 // C := alpha * op(A) * op(B) + beta * C
@@ -31,10 +45,8 @@ void pzydgemm_cpu_opt_k8(int M, int N, int K, double alpha, double *A, int LDA, 
     }
 }
 
-// 为什么这里不需要 __m256声明？ 是因为使用_mm256命令会自动声明__m256吗？不是，因为函数中事先统一声明过了
-// ax0: a00,a10,a20,a30; loadu 不需要对齐256
-// ay0: a40,a50,a60,a70; loadu 不需要对齐256
-// 学长这里的表达方式没看懂，学长的意思是说乘出来是一个4*8的部分结果C矩阵吗？不应该是8*4吗？
+// ax0: a00,a10,a20,a30; loadu: unaligned, not need to be aligned 
+// ay0: a40,a50,a60,a70; loadu: unaligned, not need to be aligned 
 #define KERNEL_K1_8x4_avx2_intrinsics\
     ax0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i,k)));\
     ay0 = _mm256_mul_pd(valpha, _mm256_loadu_pd(&A(i+4,k)));\
@@ -79,19 +91,6 @@ void pzydgemm_cpu_opt_k8(int M, int N, int K, double alpha, double *A, int LDA, 
     _mm256_storeu_pd(&C(i+4,j+1), _mm256_add_pd(cy1, _mm256_loadu_pd(&C(i+4,j+1))));\
     _mm256_storeu_pd(&C(i+4,j+2), _mm256_add_pd(cy2, _mm256_loadu_pd(&C(i+4,j+2))));\
     _mm256_storeu_pd(&C(i+4,j+3), _mm256_add_pd(cy3, _mm256_loadu_pd(&C(i+4,j+3))));
-
-///*
-#define M_BLOCKING 192
-#define N_BLOCKING 112 // very big 2048
-#define K_BLOCKING 384
-//*/
-
-/*
-// test
-#define M_BLOCKING 16
-#define N_BLOCKING 8
-#define K_BLOCKING 32
-//*/
 
 void pzydgemm_cpu_v8(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     if (beta != 1.0) pzyscale_C_k8(M, N, beta, C, LDC);
