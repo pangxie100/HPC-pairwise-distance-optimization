@@ -2,7 +2,7 @@
 #define A(i,j) A[(i)+(j)*LDA]
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
-// packing + cache blocking + 24*8 register blocking with AVX512 + loop unrolling * 4
+// discontinuous packing(2 - 2 packing) + cache blocking + 24*8 register blocking with AVX512 + loop unrolling * 4
 // The least number of AVX512 register needed is 24 + 3 +1 = 28 (max is 32)
 
 // 8*4 register blocking, still can be improved by adding one 4*2 register blocking or 4*4
