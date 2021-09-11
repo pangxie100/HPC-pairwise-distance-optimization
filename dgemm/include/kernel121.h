@@ -231,7 +231,7 @@ void macro_kernel_16xkx14_avx512_packing_inlineASM(double *ptr_packing_a, double
     );
 }
 
-// changed vs kernel 101
+// changed vs kernel 111
 void pzydgemm_cpu_v121(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     if (beta != 1.0) pzyscale_C_k121(M, N, beta, C, LDC);
     // difference between malloc and aligned_alloc : 
