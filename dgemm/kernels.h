@@ -15,9 +15,12 @@
 #include "./include/kernel101.h"
 #include "./include/kernel11.h"
 #include "./include/kernel111.h"
+#include "./include/kernel112.h"
 #include "./include/kernel12.h"
 #include "./include/kernel120.h"
 #include "./include/kernel121.h"
+#include "./include/kernel122.h"
+#include "./include/kernel130.h"
 /*
 #include "./include/kernel13.h"
 #include "./include/kernel14.h"

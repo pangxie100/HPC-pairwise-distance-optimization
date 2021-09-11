@@ -76,7 +76,7 @@ void pzypacking_a_k121(double alpha, double *packsrc, double *packdst, int LDA, 
     // kernel A * B is 16 * 14, we can use one pointer to store 16 numbers in one column (col-major)
     double *src, *dst;
     dst = packdst;
-    __m512d valpha=_mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
+    __m512d valpha = _mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
     //int i, k;
     //for (i = 0; i < dim_m, i += 16){
     int i, k, remain = dim_m;

@@ -62,7 +62,7 @@ void pzydgemm_cpu_opt_k11(int M, int N, int K, double alpha, double *A, int LDA,
 // printf("b00[0] = %5.2f, b01[0] = %5.2f\n", b00[0], b01[0]);
 // printf("cx0[0] = %5.2f, cy0[0] = %5.2f, cz0[0] = %5.2f\n", cx0[0], cy0[0], cz0[0]);
 
-// changed compared with kernel 10
+// changed vs kernel 10
 #define KERNEL_K1_24x8_avx512_intrinsics_packing_v2\
     ax0 = _mm512_mul_pd(valpha, _mm512_loadu_pd(ptr_packing_a));\
     ay0 = _mm512_mul_pd(valpha, _mm512_loadu_pd(ptr_packing_a + 8));\
@@ -110,6 +110,7 @@ void pzydgemm_cpu_opt_k11(int M, int N, int K, double alpha, double *A, int LDA,
 
 // test and debug
 // printf("cx0[0] = %5.2f, cy0[0] = %5.2f, cz0[0] = %5.2f\n", cx0[0], cy0[0], cz0[0]);
+// changed name vs kernel 10
 #define macro_kernel_24xkx8_avx512_packing_v2\
     cx0 = _mm512_setzero_pd();\
     cx1 = _mm512_setzero_pd();\
@@ -169,7 +170,7 @@ void pzydgemm_cpu_opt_k11(int M, int N, int K, double alpha, double *A, int LDA,
     _mm512_storeu_pd(&C(i+16,j+6), _mm512_add_pd(cz6, _mm512_loadu_pd(&C(i+16,j+6))));\
     _mm512_storeu_pd(&C(i+16,j+7), _mm512_add_pd(cz7, _mm512_loadu_pd(&C(i+16,j+7))));
 
-// changed compared with kernel 10
+// changed vs kernel 10
 // changed from 8 to 2 (compared to kernel 10)
 void pzypacking_b_k11(double *packsrc, double *packdst, int LDB, int dim_k, int dim_n){
     // kernel A * B is 24 * 8, thus we need 8 pointers to store each number in one row (col-major)
@@ -208,7 +209,7 @@ void pzypacking_a_k11(double *packsrc, double *packdst, int LDA, int dim_m, int 
     }
 }
 
-// changed compared with kernel 10
+// changed vs kernel 10
 void pzydgemm_cpu_v11(int M, int N, int K, double alpha, double *A, int LDA, double *B, int LDB, double beta, double *C, int LDC){
     if (beta != 1.0) pzyscale_C_k11(M, N, beta, C, LDC);
     // difference between malloc and aligned_alloc : 

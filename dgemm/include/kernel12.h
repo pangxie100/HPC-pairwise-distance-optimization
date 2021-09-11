@@ -75,7 +75,7 @@ void pzypacking_a_k12(double alpha, double *packsrc, double *packdst, int LDA, i
     // kernel A * B is 24 * 8, we can use one pointer to store 24 numbers in one column (col-major)
     double *src, *dst;
     dst = packdst;
-    __m512d valpha=_mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
+    __m512d valpha = _mm512_set1_pd(alpha); // broadcast alpha to a 512-bit vector, the input is a double value
     //int i, k;
     //for (i = 0; i < dim_m, i += 24){
     int i, k, remain = dim_m;
@@ -102,7 +102,7 @@ void pzypacking_a_k12(double alpha, double *packsrc, double *packdst, int LDA, i
   "vpxorq %%zmm24,%%zmm24,%%zmm24; vpxorq %%zmm25,%%zmm25,%%zmm25; vpxorq %%zmm26,%%zmm26,%%zmm26; vpxorq %%zmm27,%%zmm27,%%zmm27;"\
   "vpxorq %%zmm28,%%zmm28,%%zmm28; vpxorq %%zmm29,%%zmm29,%%zmm29; vpxorq %%zmm30,%%zmm30,%%zmm30; vpxorq %%zmm31,%%zmm31,%%zmm31;"
 
-// zmm0 - zmm2 = ax0, ay0, az0
+// zmm0 - zmm2 = ax0, ay0, az0 
 // in load_a_m24, vmovups is also fine
 #define load_a_m24 \
   "vmovaps (%0),%%zmm0; vmovaps 64(%0),%%zmm1; vmovaps 128(%0),%%zmm2; addq $192,%0;"
