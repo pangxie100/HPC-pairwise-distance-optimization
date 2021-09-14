@@ -10,7 +10,7 @@
 #define M_BLOCKING 192
 //#define N_BLOCKING 112 // very big 2240
 //#define N_BLOCKING 2240 // get a higher performance
-#define N_BLOCKING 168 // 3360
+#define N_BLOCKING 3360 // 168 // 3360
 #define K_BLOCKING 384
 //*/
 
@@ -95,12 +95,18 @@ void pzypacking_a_k12(double alpha, double *packsrc, double *packdst, int LDA, i
 
 // changed vs kernel 11
 #define INIT_m24n8 \
-  "vpxorq %%zmm8,%%zmm8,%%zmm8; vpxorq %%zmm9,%%zmm9,%%zmm9; vpxorq %%zmm10,%%zmm10,%%zmm10; vpxorq %%zmm11,%%zmm11,%%zmm11;"\
-  "vpxorq %%zmm12,%%zmm12,%%zmm12; vpxorq %%zmm13,%%zmm13,%%zmm13; vpxorq %%zmm14,%%zmm14,%%zmm14; vpxorq %%zmm15,%%zmm15,%%zmm15;"\
-  "vpxorq %%zmm16,%%zmm16,%%zmm16; vpxorq %%zmm17,%%zmm17,%%zmm17; vpxorq %%zmm18,%%zmm18,%%zmm18; vpxorq %%zmm19,%%zmm19,%%zmm19;"\
-  "vpxorq %%zmm20,%%zmm20,%%zmm20; vpxorq %%zmm21,%%zmm21,%%zmm21; vpxorq %%zmm22,%%zmm22,%%zmm22; vpxorq %%zmm23,%%zmm23,%%zmm23;"\
-  "vpxorq %%zmm24,%%zmm24,%%zmm24; vpxorq %%zmm25,%%zmm25,%%zmm25; vpxorq %%zmm26,%%zmm26,%%zmm26; vpxorq %%zmm27,%%zmm27,%%zmm27;"\
-  "vpxorq %%zmm28,%%zmm28,%%zmm28; vpxorq %%zmm29,%%zmm29,%%zmm29; vpxorq %%zmm30,%%zmm30,%%zmm30; vpxorq %%zmm31,%%zmm31,%%zmm31;"
+  "vpxorq %%zmm8,%%zmm8,%%zmm8; vpxorq %%zmm9,%%zmm9,%%zmm9;"\
+  "vpxorq %%zmm10,%%zmm10,%%zmm10; vpxorq %%zmm11,%%zmm11,%%zmm11;"\
+  "vpxorq %%zmm12,%%zmm12,%%zmm12; vpxorq %%zmm13,%%zmm13,%%zmm13;"\
+  "vpxorq %%zmm14,%%zmm14,%%zmm14; vpxorq %%zmm15,%%zmm15,%%zmm15;"\
+  "vpxorq %%zmm16,%%zmm16,%%zmm16; vpxorq %%zmm17,%%zmm17,%%zmm17;"\
+  "vpxorq %%zmm18,%%zmm18,%%zmm18; vpxorq %%zmm19,%%zmm19,%%zmm19;"\
+  "vpxorq %%zmm20,%%zmm20,%%zmm20; vpxorq %%zmm21,%%zmm21,%%zmm21;"\
+  "vpxorq %%zmm22,%%zmm22,%%zmm22; vpxorq %%zmm23,%%zmm23,%%zmm23;"\
+  "vpxorq %%zmm24,%%zmm24,%%zmm24; vpxorq %%zmm25,%%zmm25,%%zmm25;"\
+  "vpxorq %%zmm26,%%zmm26,%%zmm26; vpxorq %%zmm27,%%zmm27,%%zmm27;"\
+  "vpxorq %%zmm28,%%zmm28,%%zmm28; vpxorq %%zmm29,%%zmm29,%%zmm29;"\
+  "vpxorq %%zmm30,%%zmm30,%%zmm30; vpxorq %%zmm31,%%zmm31,%%zmm31;"
 
 // zmm0 - zmm2 = ax0, ay0, az0 
 // in load_a_m24, vmovups is also fine
